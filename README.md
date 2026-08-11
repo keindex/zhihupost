@@ -1,5 +1,5 @@
 ---
-title: WPL/s v1.5.1发布 - 支持标签 - 让你在 VS Code 中编写发布知乎文章及回答问题
+title: zhihupost v1.5.1发布 - 支持标签 - 让你在 VS Code 中编写发布知乎文章及回答问题
 zhihu-title-image: ./res/media/vs-code-extension-search-zhihu-this.png
 zhihu-tags: Markdown 编辑器, Markdown, Visual Studio Code
 zhihu-url: https://zhuanlan.zhihu.com/p/435836671
@@ -11,7 +11,7 @@ zhihu-tags: tag1, tag 2, tag-3, 标签4
 ```
 
 
-# WPL/s - 让你在VS Code中编写发布知乎文章及回答问题
+# zhihupost - 让你在VS Code中编写发布知乎文章及回答问题
 
 这是一个开源项目，你可以在[jks-liu.WPL-s@Github](https://github.com/jks-liu/WPL-s)上找到它。
 

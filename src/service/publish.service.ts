@@ -5,7 +5,6 @@ import { AnswerAPI, AnswerURL, QuestionAPI, QuestionURL, ZhuanlanAPI, ZhuanlanUR
 import { PostAnswer } from "../model/publish/answer.model";
 import { IColumn } from "../model/publish/column.model";
 import { IProfile, ITarget } from "../model/target/target";
-import { CollectionService, ICollectionItem } from "./collection.service";
 import { EventService } from "./event.service";
 import { sendRequest } from "./http.service";
 import { ProfileService } from "./profile.service";
@@ -26,7 +25,6 @@ export class PublishService {
 		protected zhihuMdParser: MarkdownIt,
 		protected defaultMdParser: MarkdownIt,
 		protected webviewService: WebviewService,
-		protected collectionService: CollectionService,
 		protected eventService: EventService,
 		protected profileService: ProfileService,
 		protected pasteService: PasteService,
@@ -62,7 +60,7 @@ export class PublishService {
 
 	private async renderZhihuMarkdown(textEditor: vscode.TextEditor): Promise<string> {
 		const text = textEditor.document.getText();
-		// text = text + "\n\n>本文使用 [WPL/s](https://zhuanlan.zhihu.com/p/390528313) 发布 [@GitHub](https://github.com/jks-liu/WPL-s)";
+		// text = text + "\n\n>本文使用 [zhihupost](https://zhuanlan.zhihu.com/p/390528313) 发布 [@GitHub](https://github.com/jks-liu/WPL-s)";
 
 		/// Render markdown
 
@@ -80,7 +78,7 @@ export class PublishService {
 			return Promise.resolve(pipePromise);
 		})
 		await pipePromise;
-		return this.zhihuMdParser.renderer.render(tokens, {}, {}) + "\n" + this.zhihuMdParser.render("\n\n>本文使用 [WPL/s](https://zhuanlan.zhihu.com/p/390528313) 发布 [@GitHub](https://github.com/jks-liu/WPL-s)");
+		return this.zhihuMdParser.renderer.render(tokens, {}, {}) ;
 	}
 
 	private addMeta(textEditor: vscode.TextEditor, key: string, value: string) {
@@ -111,6 +109,7 @@ export class PublishService {
 title: 请输入标题（若是回答的话，请删除本行）
 zhihu-url: 请输入知乎链接（删除本行发表新的知乎专栏文章）
 zhihu-title-image: 请输入专栏文章题图（若无需题图，删除本行）
+zhihu-column: 请输入专栏标题（不发布到专栏则删除本行）
 zhihu-tags: tag1, tag 2, tag-3, 标签4, 标签以半角逗号分隔, 只有知乎已经存在的标签才能添加成功
 注意: 所有的冒号是半角冒号，冒号后面有一个半角空格
 ---
@@ -136,12 +135,16 @@ zhihu-tags: tag1, tag 2, tag-3, 标签4, 标签以半角逗号分隔, 只有知�
 	
 		/// Parse meta info
 		if (meta === undefined) {
-			vscode.window.showErrorMessage('WPL/s 使用元数据，请查看文档并添加元数据');
+			vscode.window.showErrorMessage('zhihupost 使用元数据，请查看文档并添加元数据');
 			this.insertDefaultMeta(textEditor);
 			return;
 		}
 
 		let title: string|undefined = meta.title;
+		// 元数据未指定标题时，默认取 md 文件的第一行文字作为标题
+		if (!title) {
+			title = this._getTitleFromDocument(textEditor);
+		}
 		let titleImage: string|undefined = meta['zhihu-title-image'];
 		const url: URL|undefined = meta['zhihu-url'] && new URL(meta['zhihu-url']);
 		if (titleImage !== undefined) {
@@ -199,7 +202,7 @@ zhihu-tags: tag1, tag 2, tag-3, 标签4, 标签以半角逗号分隔, 只有知�
 						return;
 					}
 				}
-				const column = await this._selectColumn();
+				const column = await this._getColumnFromMeta(meta);
 				if (!this.eventService.registerEvent({
 					content: html,
 					type: MediaTypes.question,
@@ -213,63 +216,54 @@ zhihu-tags: tag1, tag 2, tag-3, 标签4, 标签以半角逗号分隔, 只有知�
 				})) this.promptSameContentWarn()
 			}
 		} else { // url is not provided
-			const selectFrom: MediaTypes = await vscode.window.showQuickPick<vscode.QuickPickItem & { value: MediaTypes }>(
-				[
-					{ label: '发布新文章', description: '', value: MediaTypes.article },
-					{ label: '从收藏夹中选取', description: '', value: MediaTypes.answer }
-				]
-			).then(item => item.value);
-
-			if (selectFrom === MediaTypes.article) {
-				// user select to publish new article
-				if (!title) {
-					title = await this._getTitle();
-					if (title) {
-						this.addMeta(textEditor, 'title', title);
-					} else {
-						vscode.window.showErrorMessage('标题不对，中止');
-						return;
-					}
+			// 没有 url 时直接发布新文章（不再提供「从收藏夹中选取」选项）
+			if (!title) {
+				title = await this._getTitle();
+				if (title) {
+					this.addMeta(textEditor, 'title', title);
+				} else {
+					vscode.window.showErrorMessage('标题不对，中止');
+					return;
 				}
-				const column = await this._selectColumn();
-				if (!title) return;
-				if (!this.eventService.registerEvent({
-					content: html,
-					type: MediaTypes.article,
-					title,
-					date: new Date(),
-					hash: md5(html + title),
-					handler: () => {
-						this.zhihuPostNewArticle(html, title, articleTags, column, titleImage, draft);
-						this.eventService.destroyEvent(md5(html + title));
-					}
-				})) this.promptSameContentWarn()
-
-			} else if (selectFrom === MediaTypes.answer) {
-				// user select from collection
-				// shebang not found, then prompt a quick pick to select a question from collections
-				const selectedTarget: ICollectionItem | undefined = await vscode.window.showQuickPick<vscode.QuickPickItem & ICollectionItem>(
-					this.collectionService.getTargets(MediaTypes.question).then(
-						(targets) => targets.map(t => ({ label: t.title ? t.title : t.excerpt, description: t.excerpt, id: t.id, type: t.type }))
-					)
-				).then(item => (item ? { id: item.id, type: item.type } : undefined));
-				if (!selectedTarget) return;
-				if (!this.eventService.registerEvent({
-					content: html,
-					type: MediaTypes.article,
-					date: new Date(),
-					hash: md5(html),
-					handler: () => {
-						this.zhihuPostNewAnswer(html, selectedTarget.id, draft);
-						this.eventService.destroyEvent(md5(html));
-					}
-				})) this.promptSameContentWarn();
 			}
+			const column = await this._getColumnFromMeta(meta);
+			if (!title) return;
+			if (!this.eventService.registerEvent({
+				content: html,
+				type: MediaTypes.article,
+				title,
+				date: new Date(),
+				hash: md5(html + title),
+				handler: () => {
+					this.zhihuPostNewArticle(html, title, articleTags, column, titleImage, draft);
+					this.eventService.destroyEvent(md5(html + title));
+				}
+			})) this.promptSameContentWarn()
 		}
 	}
 
 	private promptSameContentWarn() {
 		vscode.window.showWarningMessage(`你已经有一篇一模一样的内容还未发布！`);
+	}
+
+	/**
+	 * 从 md 文件的第一行正文中提取标题。
+	 *
+	 * 元数据（`---` 包裹的部分）位于文件头部，正文第一行通常是 `# 标题`，
+	 * 去掉 markdown 标题标记（`#`）后即为标题。
+	 */
+	private _getTitleFromDocument(textEditor: vscode.TextEditor): string | undefined {
+		const lines = textEditor.document.getText().split(/\r?\n/);
+		for (const line of lines) {
+			const trimmed = line.trim();
+			// 跳过元数据块（--- 开头）和空行
+			if (trimmed === '' ) continue;
+			if (trimmed.startsWith('---')) continue;
+			// 去掉 markdown 一级/二级标题标记和行首空白
+			const title = trimmed.replace(/^#{1,2}\s+/, '').trim();
+			if (title) return title;
+		}
+		return undefined;
 	}
 
 	private async _getTitle(): Promise<string | undefined> {
@@ -291,16 +285,27 @@ zhihu-tags: tag1, tag 2, tag-3, 标签4, 标签以半角逗号分隔, 只有知�
 	// 	).then(item => item.value);
 	// }
 
-	private async _selectColumn(): Promise<IColumn | undefined> {
+	/**
+	 * 从 md 文件的元数据 `zhihu-column` 中读取目标专栏标题，并匹配出对应的专栏。
+	 *
+	 * 若元数据中未指定专栏（`zhihu-column` 缺失或为空），则返回 undefined，
+	 * 表示不发布到任何专栏。
+	 */
+	private async _getColumnFromMeta(meta: any): Promise<IColumn | undefined> {
+		const columnTitle: string | undefined = meta && meta['zhihu-column'];
+		if (!columnTitle || !columnTitle.trim()) return undefined;
+
 		const columns = await this.profileService.getColumns();
-		if (!columns || columns.length === 0) return;
-		return vscode.window.showQuickPick<vscode.QuickPickItem & { value: IColumn }>(
-			[{ label: '不发布到专栏', value: undefined }].concat(columns.map(c => ({ label: c.title, value: c }))), 
-			{
-			ignoreFocusOut: true,
-		
-			}
-		).then(item => item.value);
+		if (!columns || columns.length === 0) {
+			vscode.window.showWarningMessage(`未获取到你的专栏列表，无法发布到专栏 "${columnTitle.trim()}"`);
+			return undefined;
+		}
+
+		const column = columns.find(c => c.title === columnTitle.trim());
+		if (!column) {
+			vscode.window.showWarningMessage(`未找到专栏 "${columnTitle.trim()}"，请检查元数据中的 zhihu-column 是否正确。`);
+		}
+		return column;
 	}
 
 	public zhihuPostExistingAnswer(html: string, questionId:string,  answerId: string, draft: boolean) {
@@ -516,7 +521,8 @@ zhihu-tags: tag1, tag 2, tag-3, 标签4, 标签以半角逗号分隔, 只有知�
 	}
 
 	private promptSuccessMsg(url: string, title?: string) {
-		vscode.window.showInformationMessage(`${title ? '"' + title + '"' : ''} 发布成功！\n`, { modal: true },
+		// 非模态提示，显示在 VS Code 右下角，不打断用户操作
+		vscode.window.showInformationMessage(`${title ? '"' + title + '"' : ''} 发布成功！`,
 			previewActions.openInBrowser
 		).then(r => r ? vscode.env.openExternal(vscode.Uri.parse(url)) : undefined);
 	}

@@ -101,3 +101,4 @@ const httpService = new HttpService()
 export const sendRequest = (options) => httpService.sendRequest(options);
 export const clearCookie = (domain?: string) => httpService.clearCookie(domain);
 export const clearCache = () => httpService.clearCache();
+export const setXsrfToken = (token: string) => { httpService.xsrfToken = token; };

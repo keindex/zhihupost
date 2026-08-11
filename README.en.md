@@ -1,4 +1,4 @@
-# WPL/s
+# zhihupost
 
 Write-Publish-Loop w/ statistic.
 

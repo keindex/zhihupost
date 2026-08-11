@@ -1,19 +1,3 @@
-export enum FeedCmds {
-	refresh = 'zhihu.refreshFeed',
-	previousPage = 'zhihu.previousPage',
-	nextPage = 'zhihu.nextPage'
-}
-
-export enum HotstoriesCmds {
-	refresh = 'zhihu.refreshHotstories'
-}
-
-export enum CollectionCmds {
-	refresh = 'zhihu.refreshCollection',
-	add = 'zhihu.collect',
-	delete = 'zhihu.deleteCollectionItem'
-}
-
 export enum WebviewCmds {
 	open = 'zhihu.openWebview'
 }
@@ -27,8 +11,7 @@ export enum AuthorCmds {
 	publish = 'zhihu.publish',
 	uploadImageFromClipboard = 'zhihu.uploadImageFromClipboard',
 	uploadImageFromPath = 'zhihu.uploadImageFromPath',
-	uploadImageFromExplorer = 'zhihu.uploadImageFromExplorer',
-	deleteEvent = 'zhihu.deleteEventItem'
+	uploadImageFromExplorer = 'zhihu.uploadImageFromExplorer'
 }
 
 export enum AuthCmds {

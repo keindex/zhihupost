@@ -1,5 +1,21 @@
 # 更新记录
 
+# v2.0.0 (2026/8/11)
+重大变更：
+
+- 删除推荐、热榜、收藏三个侧边栏视图
+- 删除扫码登录（二维码/微信），仅保留 Cookie 字符串登录
+- 删除发布时「从收藏夹中选取」的方式
+- 专栏发布改为通过 md 元数据 `zhihu-column` 指定，不再弹窗选择
+- 发布成功提示改为右下角非模态通知
+- 标题默认取 md 文件第一行文字
+- 修复未登录时误报「你已经登录了哦~ undefined」的问题
+- 修复点击推荐文章时 `Cannot read properties of undefined` 报错
+- 修复 Node.js 18+ 下 webpack 编译 `ERR_OSSL_EVP_UNSUPPORTED` 问题
+- 修复 `uglify-js` 导致插件激活失败的问题
+- 删除 release notes 弹窗功能
+- 品牌名从 WPL/s 改为 zhihupost
+
 # v1.5.1 (2022/7/16)
 修复登录二维码无法显示的问题
 

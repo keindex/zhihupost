@@ -1,8 +1,8 @@
 {
-	"name": "wpls",
-	"displayName": "WPL/s - Zhihu Write Publish Loop w/ statistic",
+	"name": "zhihupost",
+	"displayName": "zhihupost - Zhihu Write Publish Loop w/ statistic",
 	"description": "使用 Markdown 在 VS Code 中进行知乎创作（回答问题，写专栏文章）",
-	"version": "1.5.1",
+	"version": "2.0.0",
 	"publisher": "jks-liu",
 	"license": "MIT",
 	"enableProposedApi": false,
@@ -15,18 +15,13 @@
 		"writing",
 		"知乎",
 		"Markdown",
-		"wpls",
-		"wpl/s",
-		"wpl",
+		"zhihupost",
 		"写作"
 	],
 	"categories": [
 		"Notebooks"
 	],
 	"activationEvents": [
-		"onCommand:zhihu.refreshFeed",
-		"onCommand:zhihu.refreshHotstories",
-		"onCommand:zhihu.refreshCollection",
 		"onCommand:zhihu.openWebView",
 		"onCommand:zhihu.publish",
 		"onCommand:zhihu.drafts",
@@ -34,14 +29,10 @@
 		"onCommand:zhihu.search",
 		"onCommand:zhihu.login",
 		"onCommand:zhihu.logout",
-		"onCommand:zhihu.previousPage",
-		"onCommand:zhihu.nextPage",
 		"onCommand:zhihu.uploadImageFromClipboard",
 		"onCommand:zhihu.uploadImageFromPath",
 		"onCommand:zhihu.uploadImageFromExplorer",
 		"onCommand:zhihu.atPeople",
-		"onCommand:zhihu.jianshuLogin",
-		"onView:zhihu-explorer",
 		"onLanguage:markdown"
 	],
 	"repository": {
@@ -61,50 +52,9 @@
 			]
 		},
 		"views": {
-			"zhihu-explorer": [
-				{
-					"id": "zhihu-feed",
-					"name": "推荐"
-				},
-				{
-					"id": "zhihu-hotStories",
-					"name": "热榜"
-				},
-				{
-					"id": "zhihu-collection",
-					"name": "收藏"
-				}
-			]
+			"zhihu-explorer": []
 		},
 		"commands": [
-			{
-				"command": "zhihu.refreshFeed",
-				"title": "Zhihu: Refresh Feed",
-				"icon": {
-					"light": "res/media/light/refresh_black_24dp.svg",
-					"dark": "res/media/dark/refresh_white_24dp.svg"
-				}
-			},
-			{
-				"command": "zhihu.refreshHotstories",
-				"title": "Zhihu: Refresh HotStories",
-				"icon": {
-					"light": "res/media/light/refresh_black_24dp.svg",
-					"dark": "res/media/dark/refresh_white_24dp.svg"
-				}
-			},
-			{
-				"command": "zhihu.jianshuLogin",
-				"title": "Jianshu: Login"
-			},
-			{
-				"command": "zhihu.refreshCollection",
-				"title": "Zhihu: Refresh Collection",
-				"icon": {
-					"light": "res/media/light/refresh_black_24dp.svg",
-					"dark": "res/media/dark/refresh_write_24dp.svg"
-				}
-			},
 			{
 				"command": "zhihu.openWebView",
 				"title": "Zhihu: openWebView"
@@ -138,30 +88,6 @@
 				}
 			},
 			{
-				"command": "zhihu.collect",
-				"title": "Zhihu: Collect",
-				"icon": {
-					"light": "res/media/light/collect.svg",
-					"dark": "res/media/dark/collect.svg"
-				}
-			},
-			{
-				"command": "zhihu.deleteCollectionItem",
-				"title": "Zhihu: Delete Collection Item",
-				"icon": {
-					"light": "res/media/light/delete.svg",
-					"dark": "res/media/dark/delete.svg"
-				}
-			},
-			{
-				"command": "zhihu.deleteEventItem",
-				"title": "Zhihu: Delete Event Item",
-				"icon": {
-					"light": "res/media/light/delete.svg",
-					"dark": "res/media/dark/delete.svg"
-				}
-			},
-			{
 				"command": "zhihu.uploadImageFromClipboard",
 				"title": "Zhihu: Paste Image From Clipboard"
 			},
@@ -188,18 +114,6 @@
 			{
 				"command": "zhihu.logout",
 				"title": "Zhihu: Logout"
-			},
-			{
-				"command": "zhihu.previousPage",
-				"title": "Zhihu: PreviousPage"
-			},
-			{
-				"command": "zhihu.nextPage",
-				"title": "Zhihu: NextPage",
-				"icon": {
-					"light": "res/media/light/right-arrow.svg",
-					"dark": "res/media/dark/right-arrow.svg"
-				}
 			},
 			{
 				"command": "zhihu.getLink",
@@ -255,60 +169,8 @@
 					"when": "resourceExtname == .png || resourceExtname == .gif || resourceExtname == .jpg"
 				}
 			],
-			"view/title": [
-				{
-					"command": "zhihu.refreshFeed",
-					"when": "view == zhihu-feed",
-					"group": "navigation@0"
-				},
-				{
-					"command": "zhihu.refreshHotstories",
-					"when": "view == zhihu-hotStories",
-					"group": "navigation@0"
-				},
-				{
-					"command": "zhihu.refreshCollection",
-					"when": "view == zhihu-collection",
-					"group": "navigation@0"
-				},
-				{
-					"command": "zhihu.login",
-					"when": "view == zhihu-feed",
-					"group": "navigation"
-				},
-				{
-					"command": "zhihu.logout",
-					"when": "view == zhihu-feed",
-					"group": "secondary"
-				},
-				{
-					"command": "zhihu.search",
-					"when": "view == zhihu-feed",
-					"group": "navigation"
-				}
-			],
-			"view/item/context": [
-				{
-					"command": "zhihu.previousPage",
-					"when": "view == zhihu-feed && viewItem == feed",
-					"group": "more"
-				},
-				{
-					"command": "zhihu.nextPage",
-					"when": "view == zhihu-feed && viewItem == feed",
-					"group": "inline"
-				},
-				{
-					"command": "zhihu.deleteCollectionItem",
-					"when": "view == zhihu-collection && viewItem == collect-item",
-					"group": "inline"
-				},
-				{
-					"command": "zhihu.deleteEventItem",
-					"when": "view == zhihu-feed && viewItem == event",
-					"group": "inline"
-				}
-			]
+			"view/title": [],
+			"view/item/context": []
 		},
 		"configuration": {
 			"title": "Zhihu",
@@ -337,7 +199,7 @@
 	},
 	"scripts": {
 		"vscode:prepublish": "webpack --mode production",
-		"develop": "webpack --mode development --watch",
+		"develop": "cross-env NODE_OPTIONS=--openssl-legacy-provider webpack --mode development --watch",
 		"compile": "tsc -p ./",
 		"watch": "tsc -watch -p ./",
 		"test": "npm run compile && node ./out/test/runTest.js",
@@ -359,6 +221,7 @@
 		"@typescript-eslint/eslint-plugin": "^4.28.5",
 		"@typescript-eslint/eslint-plugin-tslint": "^2.23.0",
 		"@typescript-eslint/parser": "^4.28.5",
+		"cross-env": "^10.1.0",
 		"eslint": "^6.8.0",
 		"mocha": "^7.0.1",
 		"ts-loader": "^9.2.5",

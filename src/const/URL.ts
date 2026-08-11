@@ -5,13 +5,6 @@ export const CaptchaAPI = `https://www.zhihu.com/api/v3/oauth/captcha?lang=en`;
 
 
 /**
- * Prefetch QRCode https://www.zhihu.com/api/v3/account/api/login/qrcode
- * Get QRCode https://www.zhihu.com/api/v3/account/api/login/qrcode/${token}/image
- * Query ScanInfo https://www.zhihu.com/api/v3/account/api/login/qrcode/${token}/scan_info
- */
-export const QRCodeAPI = 'https://www.zhihu.com/api/v3/account/api/login/qrcode';
-
-/**
  * API for Aliyun OSS File Upload
  */
 export const ImageUpload = 'https://api.zhihu.com/images';
@@ -22,11 +15,6 @@ export const ImageUpload = 'https://api.zhihu.com/images';
  * `https://pic4.zhimg.com/80/${file_name}_hd.png`
  */
 export const ImageHostAPI = 'https://pic4.zhimg.com/80';
-
-/**
- * Get qrcode ticket
- */
-export const UDIDAPI = 'https://www.zhihu.com/udid';
 
 /**
  * POST Login data to this API to aquire authentication
@@ -112,37 +100,6 @@ export const ArticleAPI = 'https://www.zhihu.com/api/v4/articles'
  * Search All items in Zhihu
  */
 export const SearchAPI: string = "https://www.zhihu.com/api/v4/search_v3";
-
-/**
- * return the href link of weixin qrcode
- * @param qrId the qrcode img src
- */
-export function WeixinLoginQRCodeAPI(qrId: string) {
-	return `https://open.weixin.qq.com${qrId}` + 
-	"?appid=wx268fcfe924dcb171&redirect_uri=https%3A%2F%2Fwww.zhihu.com%2Foauth%2Fcallback%2Fwechat%3Faction%3Dlogin%26from%3D" +
-	"&response_type=code&scope=snsapi_login&state=" +
-	WeixinState +
-	"#wechat"
-
-}
-
-export const WeixinState = "35623532396136362d663237392d343964352d613131652d343037363062383430663164";
-
-export function WeixinLoginPageAPI(): string {
-	return "https://open.weixin.qq.com/connect/qrconnect" + 
-	"?appid=wx268fcfe924dcb171&redirect_uri=https%3A%2F%2Fwww.zhihu.com%2Foauth%2Fcallback%2Fwechat%3Faction%3Dlogin%26from%3D" +
-	"&response_type=code&scope=snsapi_login&state=" +
-	WeixinState
-}
-
-
-export function WeixinLoginRedirectAPI(): string {
-	return "https://www.zhihu.com/oauth/redirect/login/wechat?next=/oauth/account_callback&ref_source=other_https://www.zhihu.com/signin?next=%2F";
-}
-
-export function JianshuWeixinLoginRedirectAPI(): string {
-	return "https://www.jianshu.com/users/auth/wechat"
-}
 
 /**
  *  get sms

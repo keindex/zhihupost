@@ -36,19 +36,13 @@ export const LegalImageExt = [ '.jpg', '.jpeg', '.gif', '.png' ];
 export enum LoginEnum {
 	sms,
 	password,
-	qrcode,
-	weixin
+	cookie
 }
 
 export const LoginTypes = [
-	{ value: LoginEnum.qrcode, ch: '二维码'},
+	{ value: LoginEnum.cookie, ch: '粘贴 Cookie'},
 	// { value: LoginEnum.sms, ch: '短信验证码' },
-	{ value: LoginEnum.weixin, ch: '微信'},
 	// { value: LoginEnum.password, ch: '密码' },
-];
-
-export const JianshuLoginTypes = [
-	{ value: LoginEnum.weixin, ch: '微信'  }
 ]
 
 export enum SettingEnum {
@@ -57,7 +51,6 @@ export enum SettingEnum {
 }
 
 export enum WebviewEvents {
-	collect = 'collect',
 	share = 'share',
 	open = 'open',
 	upvoteAnswer = 'upvoteAnswer',

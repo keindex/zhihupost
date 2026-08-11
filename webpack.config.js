@@ -22,10 +22,11 @@ const config = {
   externals: [{
     vscode: 'commonjs vscode', // the vscode-module is created on-the-fly and must be excluded. Add other modules that cannot be webpack'ed, 📖 -> https://webpack.js.org/configuration/externals/
   },
-  // {
-  //   'uglify-js': 'uglify-js'
-
-  // }
+  {
+    // uglify-js 使用动态 require，无法被 webpack 静态打包；
+    // 且它是 pug 的可选依赖，运行时从 node_modules 加载即可。
+    'uglify-js': 'commonjs uglify-js'
+  }
   ],
   resolve: {
     // support reading TypeScript and JavaScript files, 📖 -> https://github.com/TypeStrong/ts-loader
