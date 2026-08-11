@@ -60,7 +60,7 @@ export class PublishService {
 
 	private async renderZhihuMarkdown(textEditor: vscode.TextEditor): Promise<string> {
 		const text = textEditor.document.getText();
-		// text = text + "\n\n>本文使用 [zhihupost](https://zhuanlan.zhihu.com/p/390528313) 发布 [@GitHub](https://github.com/jks-liu/WPL-s)";
+		// text = text + "\n\n>本文使用 [zhihupost]发布 [@GitHub](https://github.com/keindex/zhihupost)";
 
 		/// Render markdown
 
@@ -106,12 +106,11 @@ export class PublishService {
 
 	private insertDefaultMeta(textEditor: vscode.TextEditor) {
 		const meta_template = `---
-title: 请输入标题（若是回答的话，请删除本行）
-zhihu-url: 请输入知乎链接（删除本行发表新的知乎专栏文章）
-zhihu-title-image: 请输入专栏文章题图（若无需题图，删除本行）
-zhihu-column: 请输入专栏标题（不发布到专栏则删除本行）
-zhihu-tags: tag1, tag 2, tag-3, 标签4, 标签以半角逗号分隔, 只有知乎已经存在的标签才能添加成功
-注意: 所有的冒号是半角冒号，冒号后面有一个半角空格
+title: 
+zhihu-url: 
+zhihu-title-image: 
+zhihu-column: 
+zhihu-tags: 
 ---
 `
 		textEditor.edit(e => {

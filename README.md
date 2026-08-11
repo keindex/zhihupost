@@ -2,7 +2,6 @@
 title: zhihupost v1.5.1发布 - 支持标签 - 让你在 VS Code 中编写发布知乎文章及回答问题
 zhihu-title-image: ./res/media/vs-code-extension-search-zhihu-this.png
 zhihu-tags: Markdown 编辑器, Markdown, Visual Studio Code
-zhihu-url: https://zhuanlan.zhihu.com/p/435836671
 ---
 
 在元数据中：
@@ -13,65 +12,57 @@ zhihu-tags: tag1, tag 2, tag-3, 标签4
 
 # zhihupost - 让你在VS Code中编写发布知乎文章及回答问题
 
-这是一个开源项目，你可以在[jks-liu.WPL-s@Github](https://github.com/jks-liu/WPL-s)上找到它。
+这是一个开源项目，你可以在[keindex.zhihupost@Github](https://github.com/keindex/zhihupost)上找到它。
 
-[![zhihu-link-card:本项目 GitHub 主页](res/media/vs-code-extension-search-zhihu.png)](https://github.com/jks-liu/WPL-s)
-
-本项目源于牛岱的开源项目（开源协议：MIT）[VSCode-Zhihu](https://github.com/niudai/VSCode-Zhihu)，在此表示感谢。
-
-插件图标来自[Google Material icons](https://fonts.google.com/icons?icon.query=coffee)，在 [Apache License, Version 2.0](https://www.apache.org/licenses/LICENSE-2.0.html)下授权。
+[![zhihu-link-card:本项目 GitHub 主页](res/media/vs-code-extension-search-zhihu.png)](https://github.com/keindex/zhihupost)
 
 # 安装
-在VS Code中搜索`zhihu`，安装即可，如下图。虽然目前排在最后一个:cry:。
 
-![在VS Code中搜索`zhihu`](./res/media/vs-code-extension-search-zhihu.png)
-
-为了更高效地编写 Markdown 文件，建议安装 [Markdown All in One](https://github.com/yzhang-gh/vscode-markdown) 插件。
+下载release的.vsix，安装到vscode即可
 
 # 支持的功能
 
-测试使用[这个 Markdown 文件](https://github.com/jks-liu/zhihu/blob/master/WPLs-introduction-and-test.md)，测试结果可以查看[这篇知乎专栏文章](https://zhuanlan.zhihu.com/p/390528313)。
 
 | Markdown基础功能 | 支持与否 |
 | :--- | :--- |
-| 章节标题 | :heavy_check_mark: *1 |
-| 分割线 | :heavy_check_mark: |
-| 引用 | :heavy_check_mark: |
-| 链接 | :heavy_check_mark: *8 |
-| 图片 | :heavy_check_mark: *6 |
-| 表格 | :heavy_check_mark: *2 |
-| 公式 | :heavy_check_mark: |
-| 代码块 | :heavy_check_mark: |
-| 加粗 | :heavy_check_mark: |
-| 斜体 | :heavy_check_mark: |
-| 加粗斜体嵌套 | :heavy_check_mark: |
-| 删除线 | :x: *3 |
-| 列表 | :heavy_check_mark: |
-| 参考文献 | :heavy_check_mark: *4 |
+| 章节标题 | √ *1 |
+| 分割线 | √ |
+| 引用 | √ |
+| 链接 | √ *8 |
+| 图片 | √ *6 |
+| 表格 | √ *2 |
+| 公式 | √ |
+| 代码块 | √ |
+| 加粗 | √ |
+| 斜体 | √ |
+| 加粗斜体嵌套 | √ |
+| 删除线 | × *3 |
+| 列表 | √ |
+| 参考文献 | √ *4 |
 
 | 其它特色功能 | 支持与否 |
 | :--- | :--- |
-| 元数据 | :heavy_check_mark: *4 |
-| 目录 | :x: *0 |
-| 章节标题自动编号 | :x: *0 |
-| Emoji表情 | :heavy_check_mark: *5 |
-| 任务列表 | :heavy_check_mark: |
+| 元数据 | √ *4 |
+| 目录 | × *0 |
+| 章节标题自动编号 | × *0 |
+| Emoji表情 | √ *5 |
+| 任务列表 | √ |
 
 
 | 知乎特色功能 | 支持与否 |
 | --- | --- |
-| 标题 | :heavy_check_mark: *7 |
-| 回答问题 | :heavy_check_mark: |
-| 发布文章 | :heavy_check_mark: |
-| 题图 | :heavy_check_mark: *7 |
-| 链接卡片 | :heavy_check_mark: *4 |
-| 视频 | :x: |
-| 好物推荐 | :x: |
-| 附件 | :x: |
-| 标签 | :heavy_check_mark: *7 |
-| 草稿 | :heavy_check_mark:|
-| 赞赏 | :x: |
-| 追更 | :x: |
+| 标题 | √ *7 |
+| 回答问题 | √ |
+| 发布文章 | √ |
+| 题图 | √ *7 |
+| 链接卡片 | √ *4 |
+| 视频 | × |
+| 好物推荐 | × |
+| 附件 | × |
+| 标签 | √ *7 |
+| 草稿 | √|
+| 赞赏 | × |
+| 追更 | × |
 
 （0）打算近期支持，star，点赞，收藏，一键三连给我动力呀
 
@@ -86,7 +77,7 @@ zhihu-tags: tag1, tag 2, tag-3, 标签4
 
 # Markdown 语法文档
 
-最直接的方法是参考[上面提到的 Markdown 测试文件](https://github.com/jks-liu/zhihu/blob/master/WPLs-introduction-and-test.md)。
+最直接的方法是参考[上面提到的 Markdown 测试文件](https://github.com/keindex/zhihu/blob/master/WPLs-introduction-and-test.md)。
 
 ## Markdown语法
 自行 Google，或查看上面的测试文件。由于本项目使用 `markdown-it` 来渲染 Markdown，所以遵循 [CommonMark](https://commonmark.org/) 规范。
@@ -97,6 +88,7 @@ zhihu-tags: tag1, tag 2, tag-3, 标签4
 ---
 title: 请输入标题（若是回答的话，请删除本行）
 zhihu-url: 请输入知乎链接（删除本行发表新的知乎专栏文章）
+zhihu-column: 请输入专栏名称（若不发表到专栏，请删除本行）
 zhihu-title-image: 请输入专栏文章题图（若无需题图，删除本行）
 zhihu-tags: tag1, tag 2, tag-3, 标签4, 标签以半角逗号分隔, 只有知乎已经存在的标签才能添加成功
 注意: 所有的冒号是半角冒号，冒号后面有一个半角空格
@@ -105,7 +97,7 @@ zhihu-tags: tag1, tag 2, tag-3, 标签4, 标签以半角逗号分隔, 只有知�
 
 ## 链接卡片
 ```md
-[![zhihu-link-card:本项目 GitHub 主页](./pics/vs-code-extension-search-zhihu.png)](https://github.com/jks-liu/WPL-s)
+[![zhihu-link-card:本项目 GitHub 主页](./pics/vs-code-extension-search-zhihu.png)](https://github.com/keindex/WPL-s)
 ```
 语法上和一个图片链接一样，但图片的文字需要以`zhihu-link-card:`开头。
 
