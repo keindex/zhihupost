@@ -16,14 +16,7 @@
                 "showReuseMessage": true,
                 "clear": false
             },
-            "problemMatcher": {
-                "base": "$ts-webpack-watch",
-                "background": {
-                    "activeOnStart": true,
-                    "beginsPattern": "webpack is watching the files…",
-                    "endsPattern": "^Built at: .* [AP]M"
-                }
-            }
+            "problemMatcher": "$ts-webpack-watch"
         },
         {
             "type": "npm",

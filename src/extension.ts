@@ -66,6 +66,34 @@ export async function activate(context: vscode.ExtensionContext) {
 	vscode.commands.registerTextEditorCommand('zhihu.drafts', (textEditor: vscode.TextEditor, edit: vscode.TextEditorEdit) => {
 		publishService.publish(textEditor, edit, true);
 	})
+	vscode.commands.registerCommand('zhihu.publishFile', (uri: vscode.Uri) => {
+		if (!uri || !uri.fsPath) {
+			vscode.window.showErrorMessage('请选择一个 Markdown 文件');
+			return;
+		}
+		publishService.publishFile(uri.fsPath, false);
+	})
+	vscode.commands.registerCommand('zhihu.publishFileAsDraft', (uri: vscode.Uri) => {
+		if (!uri || !uri.fsPath) {
+			vscode.window.showErrorMessage('请选择一个 Markdown 文件');
+			return;
+		}
+		publishService.publishFile(uri.fsPath, true);
+	})
+	vscode.commands.registerCommand('zhihu.publishFolder', (uri: vscode.Uri) => {
+		if (!uri || !uri.fsPath) {
+			vscode.window.showErrorMessage('请选择一个文件夹');
+			return;
+		}
+		publishService.publishFolder(uri, false);
+	})
+	vscode.commands.registerCommand('zhihu.publishFolderAsDrafts', (uri: vscode.Uri) => {
+		if (!uri || !uri.fsPath) {
+			vscode.window.showErrorMessage('请选择一个文件夹');
+			return;
+		}
+		publishService.publishFolder(uri, true);
+	})
 	vscode.commands.registerCommand('zhihu.uploadImageFromClipboard', async () => {
 		pasteService.uploadImageFromClipboard()
 	})

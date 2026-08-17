@@ -1,8 +1,8 @@
-import * as OSS from "ali-oss";
+import OSS = require("ali-oss");
 import * as childProcess from "child_process";
 import * as fs from "fs";
 import * as os from "os";
-import * as md5 from "md5";
+import md5 = require("md5");
 import * as path from "path";
 import * as vscode from "vscode";
 import { LegalImageExt } from "../const/ENUM";
@@ -50,14 +50,19 @@ export class PasteService {
             return uris ? uris[0] : undefined
                 ;
         });
-        this.uploadImageFromLink(imageUri.fsPath, true);
+        if (imageUri) {
+            this.uploadImageFromLink(imageUri.fsPath, true);
+        }
     }
 
     /**
 	 * Upload image from other domains or relative link specified by `link`, and return the resolved zhihu link
 	 * @param link the outer link
+	 * @param insert whether to insert the image link into the active editor
+	 * @param baseDir the base directory of the markdown file, used to resolve relative image paths.
+	 *                default to the active editor's directory.
 	 */
-    public async uploadImageFromLink(link: string, insert?: boolean): Promise<string> {
+    public async uploadImageFromLink(link: string, insert?: boolean, baseDir?: string): Promise<string | undefined> {
         if (getCache(link)) {
             if (insert) {
                 this.insertImageLink(getCache(link), true);
@@ -79,14 +84,17 @@ export class PasteService {
                     enableCache: true
                 });
             }
-            // const tmpPath = path.join(os.tmpdir(), path.basename(link));
-            // fs.writeFileSync(tmpPath, buffer);
-            // return this.uploadImageFromLink(tmpPath, insert);
         } else {
             // Get absolute image path
             if(!path.isAbsolute(link)) {
-                const _dir = path.dirname(vscode.window.activeTextEditor.document.uri.fsPath);
-                link = path.join(_dir, link);    
+                const _dir = baseDir || (vscode.window.activeTextEditor ? path.dirname(vscode.window.activeTextEditor.document.uri.fsPath) : undefined);
+                if (_dir === undefined) {
+                    Output(`图片相对路径 ${link} 无法解析，因为缺少 baseDir 且没有活动的编辑器！`, 'warn');
+                    buffer = undefined
+                } else {
+                    // Markdown 中的相对路径可能带有 URL 编码（如 %E7%9F%A5），解码为真实文件名
+                    link = path.join(_dir, decodeURIComponent(link));
+                }
             }
             try {
                 // Convert svg to png
@@ -97,8 +105,13 @@ export class PasteService {
                     buffer = fs.readFileSync(link);
                 }        
             } catch (error) {
-                Output('图片获取失败！', 'warn');
-                buffer = undefined
+                // 尝试再次解码（若路径本身已含 % 且不是编码形式）
+                try {
+                    buffer = fs.readFileSync(decodeURIComponent(link));
+                } catch (e2) {
+                    Output('图片获取失败！', 'warn');
+                    buffer = undefined
+                }
             }
         }
         if (!buffer) {
@@ -121,10 +134,14 @@ export class PasteService {
         };
 
         const prefetchResp = await sendRequest(options);
+        if (!prefetchResp) {
+            Output('上传图片请求失败：响应为空', 'warn');
+            return undefined;
+        }
         if (prefetchResp.statusCode == 401) {
             vscode.window.showWarningMessage("登录之后才可上传图片！");
 
-            return;
+            return undefined;
         }
         const prefetchBody: IImageUploadToken = prefetchResp.body;
         const upload_file = prefetchBody.upload_file;
@@ -132,10 +149,10 @@ export class PasteService {
             zhihu_agent.options.accessKeyId = prefetchBody.upload_token.access_id;
             zhihu_agent.options.accessKeySecret = prefetchBody.upload_token.access_key;
             zhihu_agent.options.stsToken = prefetchBody.upload_token.access_token;
-            const client = new OSS(zhihu_agent.options);
+            const client = new OSS(zhihu_agent.options as OSS.Options);
             console.log(prefetchBody);
             // Object表示上传到OSS的Object名称，localfile表示本地文件或者文件路径
-            const putResp = client.put(upload_file.object_key, buffer);
+            const putResp = client.put(upload_file.object_key, buffer as Buffer);
             console.log(putResp);
             putResp.then(r => {
                 if (insert) {
@@ -168,8 +185,8 @@ export class PasteService {
                 this.uploadImageFromLink(_path, true);
             } else {
                 const workspaceFolders = vscode.workspace.workspaceFolders;
-                if (workspaceFolders) {
-                    this.uploadImageFromLink(path.join(vscode.workspace.workspaceFolders[0].uri.fsPath, _path), true);
+                if (workspaceFolders && workspaceFolders.length > 0) {
+                    this.uploadImageFromLink(path.join(workspaceFolders[0].uri.fsPath, _path), true);
                 } else {
                     vscode.window.showWarningMessage("上传图片前请先打开一个文件夹！");
                 }
@@ -186,6 +203,10 @@ export class PasteService {
 	 */
     private insertImageLink(filename: string, absolute?: boolean) {
         const editor = vscode.window.activeTextEditor;
+        if (!editor) {
+            vscode.window.showWarningMessage("没有活动的编辑窗口！");
+            return;
+        }
         const uri = editor.document.uri;
         if (uri.scheme === "untitled") {
             vscode.window.showWarningMessage("请先保存当前编辑文件！");

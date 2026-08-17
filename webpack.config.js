@@ -3,12 +3,13 @@
 'use strict';
 
 const path = require('path');
+const webpack = require('webpack');
 
 /**@type {import('webpack').Configuration}*/
 const config = {
   target: 'node', // vscode extensions run in a Node.js-context 📖 -> https://webpack.js.org/configuration/node/
 
-  entry: './src/extension.ts', // the entry point of this extension, 📖 -> https://webpack.js.org/configuration/entry-context/
+  entry: './src/entry.js', // 先执行 entry.js（抑制弃用警告），再加载 extension.ts
   output:  { 
 
 
@@ -21,12 +22,12 @@ const config = {
   devtool: 'source-map',
   externals: [{
     vscode: 'commonjs vscode', // the vscode-module is created on-the-fly and must be excluded. Add other modules that cannot be webpack'ed, 📖 -> https://webpack.js.org/configuration/externals/
-  },
-  {
-    // uglify-js 使用动态 require，无法被 webpack 静态打包；
-    // 且它是 pug 的可选依赖，运行时从 node_modules 加载即可。
-    'uglify-js': 'commonjs uglify-js'
   }
+  // 注意：不要把 uglify-js 列为 external！
+  // uglify-js 是 pug-filters 的依赖，会在模块加载时被急切 require；
+  // 若列为 external 则打包产物保留运行时 require("uglify-js")，
+  // 而 .vscodeignore 排除了 node_modules/，VSIX 中无此模块 -> 激活报
+  // "Cannot find module 'uglify-js'"。让 webpack 静态打包它即可。
   ],
   resolve: {
     // support reading TypeScript and JavaScript files, 📖 -> https://github.com/TypeStrong/ts-loader
@@ -51,7 +52,17 @@ const config = {
             ]
       }
     ]
-  }
+  },
+  plugins: [
+    // uglify-js v2.8 main = tools/node.js, which uses dynamic require.resolve()
+    // + fs.readFileSync() + new Function() — webpack cannot bundle this.
+    // pug-filters only uses uglify.minify() when options.minify is true (never in our templates).
+    // Replace with a minimal stub that exports the minify function.
+    new webpack.NormalModuleReplacementPlugin(
+      /uglify-js$/,
+      path.resolve(__dirname, 'src/util/uglify-js-stub.js')
+    )
+  ]
   
 };
 module.exports = config;

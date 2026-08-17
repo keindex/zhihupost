@@ -44,7 +44,14 @@ export class AuthenticateService {
 		const selectedLoginType: LoginEnum = await vscode.window.showQuickPick<vscode.QuickPickItem & { value: LoginEnum }>(
 			LoginTypes.map(type => ({ value: type.value, label: type.ch, description: '' })),
 			{ placeHolder: "选择登录方式: " }
-		).then(item => item.value);
+		).then(item => {
+			// 用户按 ESC 取消时 item 为 undefined，避免读取 undefined.value 崩溃
+			return item ? item.value : undefined;
+		});
+
+		if (selectedLoginType == undefined || selectedLoginType === null) {
+			return;
+		}
 
 		if (selectedLoginType == LoginEnum.password) {
 			this.passwordLogin();

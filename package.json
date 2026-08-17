@@ -25,6 +25,10 @@
 		"onCommand:zhihu.openWebView",
 		"onCommand:zhihu.publish",
 		"onCommand:zhihu.drafts",
+		"onCommand:zhihu.publishFile",
+		"onCommand:zhihu.publishFileAsDraft",
+		"onCommand:zhihu.publishFolder",
+		"onCommand:zhihu.publishFolderAsDrafts",
 		"onCommand:zhihu.jianshuPublish",
 		"onCommand:zhihu.search",
 		"onCommand:zhihu.login",
@@ -86,6 +90,22 @@
 					"light": "res/media/light/drafts_black_24dp.svg",
 					"dark": "res/media/dark/drafts_white_24dp.svg"
 				}
+			},
+			{
+				"command": "zhihu.publishFile",
+				"title": "Zhihu: Publish Markdown File"
+			},
+			{
+				"command": "zhihu.publishFileAsDraft",
+				"title": "Zhihu: Save Markdown File As Draft"
+			},
+			{
+				"command": "zhihu.publishFolder",
+				"title": "Zhihu: Publish All Markdown Files In Folder"
+			},
+			{
+				"command": "zhihu.publishFolderAsDrafts",
+				"title": "Zhihu: Save All Markdown Files In Folder As Drafts"
 			},
 			{
 				"command": "zhihu.uploadImageFromClipboard",
@@ -167,6 +187,26 @@
 					"command": "zhihu.uploadImageFromPath",
 					"group": "extension",
 					"when": "resourceExtname == .png || resourceExtname == .gif || resourceExtname == .jpg"
+				},
+				{
+					"command": "zhihu.publishFile",
+					"group": "zhihu@1",
+					"when": "resourceExtname == .md"
+				},
+				{
+					"command": "zhihu.publishFileAsDraft",
+					"group": "zhihu@2",
+					"when": "resourceExtname == .md"
+				},
+				{
+					"command": "zhihu.publishFolder",
+					"group": "zhihu@3",
+					"when": "explorerResourceIsFolder"
+				},
+				{
+					"command": "zhihu.publishFolderAsDrafts",
+					"group": "zhihu@4",
+					"when": "explorerResourceIsFolder"
 				}
 			],
 			"view/title": [],

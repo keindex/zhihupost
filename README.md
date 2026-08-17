@@ -1,12 +1,13 @@
 ---
 title: zhihupost v1.5.1发布 - 支持标签 - 让你在 VS Code 中编写发布知乎文章及回答问题
-zhihu-title-image: ./res/media/vs-code-extension-search-zhihu-this.png
-zhihu-tags: Markdown 编辑器, Markdown, Visual Studio Code
+title-image: ./res/media/vs-code-extension-search-zhihu-this.png
+tags: Markdown 编辑器, Markdown, Visual Studio Code
+url: https://zhuanlan.zhihu.com/p/2072737463072835387
 ---
 
 在元数据中：
 ```
-zhihu-tags: tag1, tag 2, tag-3, 标签4
+tags: tag1, tag 2, tag-3, 标签4
 ```
 
 
@@ -87,10 +88,10 @@ zhihu-tags: tag1, tag 2, tag-3, 标签4
 ```md
 ---
 title: 请输入标题（若是回答的话，请删除本行）
-zhihu-url: 请输入知乎链接（删除本行发表新的知乎专栏文章）
-zhihu-column: 请输入专栏名称（若不发表到专栏，请删除本行）
-zhihu-title-image: 请输入专栏文章题图（若无需题图，删除本行）
-zhihu-tags: tag1, tag 2, tag-3, 标签4, 标签以半角逗号分隔, 只有知乎已经存在的标签才能添加成功
+url: 请输入知乎链接（删除本行发表新的知乎专栏文章）
+column: 请输入专栏名称（若不发表到专栏，请删除本行）
+title-image: 请输入专栏文章题图（若无需题图，删除本行）
+tags: tag1, tag 2, tag-3, 标签4, 标签以半角逗号分隔, 只有知乎已经存在的标签才能添加成功
 注意: 所有的冒号是半角冒号，冒号后面有一个半角空格
 ---
 ```
