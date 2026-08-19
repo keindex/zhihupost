@@ -75,6 +75,12 @@ export const QuestionURL = 'https://www.zhihu.com/question'
 export const ZhuanlanAPI = 'https://zhuanlan.zhihu.com/api/articles';
 
 /**
+ * 创建专栏的 API
+ * POST https://www.zhihu.com/api/v4/columns/request
+ */
+export const ColumnCreateAPI = 'https://www.zhihu.com/api/v4/columns/request';
+
+/**
  * get columns info
  * @param urltoken urlToken of people
  */

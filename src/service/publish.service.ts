@@ -3,7 +3,7 @@ import * as path from "path";
 import * as vscode from "vscode";
 import { SettingEnum } from "../const/ENUM";
 import { ArticlePathReg, QuestionAnswerPathReg, QuestionPathReg } from "../const/REG";
-import { AnswerAPI, AnswerURL, QuestionAPI, QuestionURL, ZhuanlanAPI, ZhuanlanURL } from "../const/URL";
+import { AnswerAPI, AnswerURL, ColumnCreateAPI, QuestionAPI, QuestionURL, ZhuanlanAPI, ZhuanlanURL } from "../const/URL";
 import { PostAnswer } from "../model/publish/answer.model";
 import { IColumn } from "../model/publish/column.model";
 import { IProfile, ITarget } from "../model/target/target";
@@ -530,16 +530,50 @@ tags:
 		if (!columnTitle || !columnTitle.trim()) return undefined;
 
 		const columns = await this.profileService.getColumns();
-		if (!columns || columns.length === 0) {
-			vscode.window.showWarningMessage(`未获取到你的专栏列表，无法发布到专栏 "${columnTitle.trim()}"`);
-			return undefined;
+		if (columns && columns.length > 0) {
+			const column = columns.find(c => c.title === columnTitle.trim());
+			if (column) return column;
 		}
 
-		const column = columns.find(c => c.title === columnTitle.trim());
-		if (!column) {
-			vscode.window.showWarningMessage(`未找到专栏 "${columnTitle.trim()}"，请检查元数据中的 column 是否正确。`);
+		// 未找到专栏，尝试创建
+		const created = await this._createColumn(columnTitle.trim());
+		if (created) {
+			return created;
 		}
-		return column;
+
+		vscode.window.showWarningMessage(`未找到专栏 "${columnTitle.trim()}" 且创建失败，请检查后重试。`);
+		return undefined;
+	}
+
+	/**
+	 * 调用知乎 API 创建新专栏。
+	 */
+	private async _createColumn(title: string): Promise<IColumn | undefined> {
+		try {
+			const resp = await sendRequest({
+				uri: ColumnCreateAPI,
+				method: 'post',
+				body: {
+					title: title,
+					intro: '',
+					intro_type: 'rich',
+				},
+				json: true,
+				resolveWithFullResponse: true,
+				headers: {},
+			});
+			if (resp && resp.statusCode < 300 && resp.body && resp.body.id) {
+				Output(`专栏 "${title}" 创建成功`, 'info');
+				vscode.window.showInformationMessage(`专栏 "${title}" 创建成功`);
+				return resp.body as IColumn;
+			} else {
+				Output(`创建专栏 "${title}" 失败：${resp ? resp.statusCode : '无响应'}`, 'warn');
+				return undefined;
+			}
+		} catch (error) {
+			Output(`创建专栏 "${title}" 异常：${error}`, 'warn');
+			return undefined;
+		}
 	}
 
 	public zhihuPostExistingAnswer(html: string, questionId:string,  answerId: string, draft: boolean): Promise<boolean> {
