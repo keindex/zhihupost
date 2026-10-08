@@ -6,14 +6,14 @@
 
 **Architecture:** Keep the Python implementation in a new `zhihupost` package. Separate front matter and Markdown rendering, credential storage, HTTP/API access, image conversion, publishing decisions, batch sequencing, and argparse commands; inject HTTP, OSS, and sleep dependencies so tests never perform live writes.
 
-**Tech Stack:** Python 3.10+, `markdown-it-py`, `mdit-py-plugins`, `PyYAML`, `httpx`, `oss2`, `platformdirs`, and `pytest`.
+**Tech Stack:** Python 3.10+, `markdown-it-py`, `mdit-py-plugins`, `emoji`, `PyYAML`, `httpx`, `oss2`, `platformdirs`, and `pytest`.
 
 **Spec:** `docs/superpowers/specs/2026-10-08-python-cli-design.md`
 
 ## Global Constraints
 
 - Use Python's standard `argparse` interface.
-- Runtime dependencies are `markdown-it-py` plus `mdit-py-plugins`, `PyYAML`, `httpx`, `oss2`, and `platformdirs`.
+- Runtime dependencies are `markdown-it-py` plus `mdit-py-plugins`, `emoji`, `PyYAML`, `httpx`, `oss2`, and `platformdirs`.
 - `ZHIHU_COOKIE` overrides the cookie saved by `login` for authenticated commands.
 - `login` validates credentials only with read-only `GET /api/v4/me`, stores them in the user config directory, and `logout` deletes that saved credential.
 - On POSIX the credential file mode is `0600`; on Windows it remains in the current user's config directory.
@@ -68,7 +68,7 @@ Expected: FAIL because the package and CLI do not exist.
 
 - [ ] **Step 3: Add package metadata and minimal parser**
 
-Declare Python `>=3.10`, the six runtime dependencies in the spec, `pytest` and `build` as test extras, setuptools package discovery, and the console entry point. Register the seven commands; `render FILE`, `publish FILE [--draft] [--dry-run]`, `publish-dir DIR [--draft] [--delay SECONDS]`, and `upload-image FILE` take paths. Implement `main()` to parse and return a nonzero “not implemented” status for commands not yet wired.
+Declare Python `>=3.10`, the seven runtime dependencies in the spec, `pytest` and `build` as test extras, setuptools package discovery, and the console entry point. Register the seven commands; `render FILE`, `publish FILE [--draft] [--dry-run]`, `publish-dir DIR [--draft] [--delay SECONDS]`, and `upload-image FILE` take paths. Implement `main()` to parse and return a nonzero “not implemented” status for commands not yet wired.
 
 - [ ] **Step 4: Run the test and verify package metadata**
 
@@ -146,7 +146,7 @@ Expected: PASS, including invalid-host and malformed-front-matter errors.
 
 - [ ] **Step 1: Add tests for the existing fixture and README syntax**
 
-Assert semantic HTML for heading levels, fenced code with language, block and inline math using Zhihu's `//www.zhihu.com/equation?tex=` image form, task lists, footnote references, and `[![zhihu-link-card:label](image)](url)` with the expected `data-image` attribute. Include a resolver spy that proves both image `src` and card `data-image` are rewritten.
+Assert semantic HTML for heading levels, fenced code with language, block and inline math using Zhihu's `//www.zhihu.com/equation?tex=` image form, shortcode emoji, task lists rendered as Zhihu emoji markers, Zhihu footnote-reference `data-*` attributes, Zhihu table attributes, and `[![zhihu-link-card:label](image)](url)` with the expected `data-image` attribute. Include a resolver spy that proves both image `src` and card `data-image` are rewritten.
 
 ```python
 from pathlib import Path
@@ -180,7 +180,7 @@ Expected: FAIL because `zhihupost.markdown` does not exist.
 
 - [ ] **Step 3: Implement the MarkdownIt pipeline and Zhihu rules**
 
-Use `markdown-it-py` with raw HTML enabled and the `mdit-py-plugins` task-list, footnote, and dollar-math plugins. Add a narrowly scoped core/render rule that turns Zhihu link-card syntax into an anchor with `data-image` and caption text, and renders math as Zhihu equation image URLs. Apply the optional resolver to image tokens and link-card image attributes before rendering. Keep render local and deterministic.
+Use `markdown-it-py` with raw HTML enabled, the `emoji` package for shortcode expansion, and `mdit-py-plugins` task-list, footnote, and dollar-math plugins. Add narrowly scoped rules to render code blocks with `pre lang`, tables with Zhihu draft attributes, task items with `white_circle` / `ballot_box_with_check` emoji markers, and footnote references as `<sup>` elements carrying `data-text`, `data-url`, `data-draft-node="inline"`, `data-draft-type="reference"`, and `data-numero`. Remove the rendered footnote tail. Turn Zhihu link-card syntax into an anchor with `data-image` and caption text, and render math as Zhihu equation image URLs. Apply the optional resolver to image tokens and link-card image attributes before rendering. Keep render local and deterministic.
 
 - [ ] **Step 4: Compare against the existing snapshot and run syntax tests**
 

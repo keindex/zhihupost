@@ -22,7 +22,7 @@ VS Code-only webviews, editor completion, clipboard UI, interactive search, and 
 
 ## Architecture
 
-The repository root will gain a `pyproject.toml` and an importable `zhihupost` package with separate modules for CLI parsing, Markdown/front matter, Zhihu HTTP access, authentication/configuration, image upload, and publish orchestration. The CLI will use Python's standard `argparse` interface and the following runtime dependencies: `markdown-it-py` plus `mdit-py-plugins` for rendering, `PyYAML` for front matter, `httpx` for HTTP, `oss2` for Zhihu's temporary upload credentials, and `platformdirs` for configuration paths.
+The repository root will gain a `pyproject.toml` and an importable `zhihupost` package with separate modules for CLI parsing, Markdown/front matter, Zhihu HTTP access, authentication/configuration, image upload, and publish orchestration. The CLI will use Python's standard `argparse` interface and the following runtime dependencies: `markdown-it-py` plus `mdit-py-plugins` for rendering, `emoji` for shortcode expansion, `PyYAML` for front matter, `httpx` for HTTP, `oss2` for Zhihu's temporary upload credentials, and `platformdirs` for configuration paths.
 
 Planned commands are `login`, `whoami`, `logout`, `render`, `publish`, `publish-dir`, and `upload-image`. `publish` will accept `--draft` and `--dry-run`; `publish-dir` will default to the extension's one-minute delay and allow an explicit override. The command's output and exit status will distinguish success, skipped files, and failures.
 
