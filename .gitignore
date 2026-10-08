@@ -106,6 +106,12 @@ dist
 # Isolated feature worktrees
 .worktrees/
 
+# Python package and test artifacts
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
 ## Jks add
 cookie.json
 qrcode.png
