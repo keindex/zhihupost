@@ -103,6 +103,9 @@ dist
 # TernJS port file
 .tern-port
 
+# Isolated feature worktrees
+.worktrees/
+
 ## Jks add
 cookie.json
 qrcode.png
