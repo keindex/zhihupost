@@ -23,7 +23,7 @@ def build_parser() -> argparse.ArgumentParser:
     publish_dir = commands.add_parser("publish-dir", help="Publish Markdown files in a directory")
     publish_dir.add_argument("dir")
     publish_dir.add_argument("--draft", action="store_true")
-    publish_dir.add_argument("--delay", type=float, default=0.0, metavar="SECONDS")
+    publish_dir.add_argument("--delay", type=float, default=60.0, metavar="SECONDS")
 
     upload_image = commands.add_parser("upload-image", help="Upload an image file")
     upload_image.add_argument("file")

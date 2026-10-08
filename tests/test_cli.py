@@ -22,3 +22,8 @@ def test_parser_registers_supported_commands():
 def test_publish_flags_parse():
     parsed = build_parser().parse_args(["publish", "draft.md", "--draft", "--dry-run"])
     assert (parsed.file, parsed.draft, parsed.dry_run) == ("draft.md", True, True)
+
+
+def test_publish_dir_defaults_to_one_minute_delay():
+    parsed = build_parser().parse_args(["publish-dir", "articles"])
+    assert parsed.delay == 60.0
