@@ -430,7 +430,7 @@ Collect recursive Markdown paths, sort by normalized relative path, call `publis
 
 - [ ] **Step 4: Write CLI dispatch and exit-code tests**
 
-Patch constructors to inject fake store/client/uploader/publisher. Verify `render` writes HTML to stdout with no network object created; `publish --dry-run` writes a dry-run result and no API calls; `login --stdin` reads stdin and saves only after mocked `me()` validation; `whoami` honors `ZHIHU_COOKIE`; `logout` removes the saved cookie; `upload-image` prints only the resulting image URL; batch returns nonzero if any file failed and prints the summary without cookie values.
+Patch constructors to inject fake store/client/uploader/publisher. Verify `render` writes HTML to stdout with no network object created; `publish --dry-run` works without a configured cookie, writes a dry-run result, and creates neither the authenticated client nor uploader; `login --stdin` reads stdin and saves only after mocked `me()` validation; `whoami` honors `ZHIHU_COOKIE`; `logout` removes the saved cookie; `upload-image` prints only the resulting image URL; batch returns nonzero if any file failed and prints the summary without cookie values.
 
 - [ ] **Step 5: Wire command handlers and run focused tests**
 
