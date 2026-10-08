@@ -135,13 +135,15 @@ class ZhihuClient:
         try:
             parsed = urlsplit(url)
             host = parsed.hostname
+            port = parsed.port
         except ValueError:
-            host = None
-            parsed = None
+            raise ZhihuAPIError(
+                "Authenticated requests require an approved HTTPS Zhihu host"
+            ) from None
         if (
-            parsed is None
-            or parsed.scheme != "https"
+            parsed.scheme != "https"
             or host not in _ALLOWED_HOSTS
+            or port not in (None, 443)
             or parsed.username is not None
             or parsed.password is not None
         ):

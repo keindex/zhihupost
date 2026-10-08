@@ -168,6 +168,79 @@ def test_client_refuses_direct_request_to_unapproved_host():
     assert calls == []
 
 
+def test_client_rejects_custom_port_before_dispatch():
+    calls = []
+    client = ZhihuClient(
+        "z_c0=synthetic-secret",
+        transport=httpx.MockTransport(lambda request: calls.append(request) or httpx.Response(200)),
+    )
+    try:
+        with pytest.raises(ZhihuAPIError) as error:
+            client.request("GET", "https://www.zhihu.com:444/api/v4/me")
+    finally:
+        client.close()
+
+    assert calls == []
+    assert "444" not in str(error.value)
+    assert "synthetic-secret" not in str(error.value)
+
+
+def test_malformed_port_raises_sanitized_api_error_before_dispatch():
+    calls = []
+    client = ZhihuClient(
+        "z_c0=synthetic-secret",
+        transport=httpx.MockTransport(lambda request: calls.append(request) or httpx.Response(200)),
+    )
+    try:
+        with pytest.raises(ZhihuAPIError) as error:
+            client.request("GET", "https://www.zhihu.com:not-a-port/api/v4/me")
+    finally:
+        client.close()
+
+    assert calls == []
+    assert "not-a-port" not in str(error.value)
+    assert "synthetic-secret" not in str(error.value)
+
+
+def test_client_accepts_explicit_https_default_port():
+    calls = []
+    client = ZhihuClient(
+        "z_c0=synthetic",
+        transport=httpx.MockTransport(lambda request: calls.append(str(request.url)) or httpx.Response(200)),
+    )
+    try:
+        response = client.request("GET", "https://www.zhihu.com:443/api/v4/me")
+    finally:
+        client.close()
+
+    assert response.status_code == 200
+    assert calls == ["https://www.zhihu.com/api/v4/me"]
+
+
+def test_redirect_to_custom_port_is_rejected_before_second_request():
+    calls = []
+
+    def handler(request):
+        calls.append(str(request.url))
+        return httpx.Response(
+            302,
+            headers={"location": "https://www.zhihu.com:444/api/v4/me"},
+            request=request,
+        )
+
+    client = ZhihuClient("z_c0=synthetic", transport=httpx.MockTransport(handler))
+    try:
+        with pytest.raises(ZhihuAPIError) as error:
+            client.request(
+                "GET", "https://www.zhihu.com/answer/42", follow_redirects=True
+            )
+    finally:
+        client.close()
+
+    assert calls == ["https://www.zhihu.com/answer/42"]
+    assert "444" not in str(error.value)
+
+
 def test_write_request_cannot_follow_redirects_or_be_replayed():
     calls = []
 
