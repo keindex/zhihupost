@@ -259,12 +259,12 @@ Expected: PASS, with only mocked GET `/api/v4/me` during auth validation.
 **Interfaces:**
 - `ImageUploader(client: ZhihuClient, oss_put: Callable[[dict, str, bytes], None] | None = None, remote_transport: httpx.BaseTransport | None = None)`.
 - `resolve_source(source: str, base_dir: Path) -> tuple[bytes, str]` resolves URL-encoded local paths and HTTP(S) sources, returning bytes and suffix; reject `.svg` and unsupported schemes.
-- `upload(source: str, base_dir: Path) -> str` returns `https://pic4.zhimg.com/80/v2-{md5}{suffix}` only after successful upload.
+- `upload(source: str, base_dir: Path) -> str` returns `https://pic4.zhimg.com/80/v2-{md5}{suffix}` after successful upload, or the content-hash URL when the preflight response has no `upload_token`.
 - Never send the authenticated `ZhihuClient` cookie to external image URLs; use a separate unauthenticated HTTP request for remote image bytes.
 
 - [ ] **Step 1: Write image tests with mocked download, Zhihu preflight, and OSS**
 
-Cover local relative paths including percent-encoded names, remote fetch without a Cookie header, SVG and unsupported-scheme rejection, preflight POST body `{image_hash, source: "answer"}`, missing upload token fallback, temporary token fields passed to OSS, awaiting/surfacing OSS failure, extension preservation, and content-hash URL generation.
+Cover local relative paths including percent-encoded names, remote fetch without a Cookie header, SVG and unsupported-scheme rejection, preflight POST body `{image_hash, source: "answer"}`, missing upload token fallback, temporary token fields passed to OSS, awaiting/surfacing OSS failure, extension preservation, and content-hash URL generation. Monkeypatch the OSS SDK constructor in a focused test to assert the fixed public target `zhihu-pics-upload.zhimg.com` / `zhihu-pics` in the `oss-cn-hangzhou` region with CNAME enabled; those values are not credentials.
 
 ```python
 import httpx
@@ -300,7 +300,7 @@ Expected: FAIL because `zhihupost.images` does not exist.
 
 - [ ] **Step 3: Implement image loading and preflight/OSS flow**
 
-POST to `https://api.zhihu.com/images` with the MD5 and `source=answer`. When `upload_token` exists, construct `oss2.StsAuth(access_id, access_key, access_token)` and `oss2.Bucket(auth, endpoint, bucket)` from only API-returned values, upload `object_key` with `put_object`, and wait for the call to finish before returning. If the preflight omits an upload token, return the documented content-hash image URL. Fail before article submission on download, preflight, or OSS errors.
+POST to `https://api.zhihu.com/images` with the MD5 and `source=answer`. The response supplies temporary `access_id`, `access_key`, `access_token`, and `object_key`; it does not supply the OSS target. When `upload_token` exists, construct `oss2.StsAuth` only from those API-returned temporary credentials and upload `object_key` to the fixed public target (`zhihu-pics-upload.zhimg.com`, bucket `zhihu-pics`, region `oss-cn-hangzhou`, CNAME enabled) with `put_object`. Never copy the access key, secret, or STS token from `src/const/HTTP.ts`. Wait for the call to finish before returning. If the preflight omits an upload token, return the documented content-hash image URL. Fail before article submission on download, preflight, or OSS errors.
 
 - [ ] **Step 4: Run `python -m pytest tests/test_images.py -q`**
 
@@ -320,7 +320,7 @@ Expected: PASS; tests assert there are no live calls and no legacy credentials.
 
 - [ ] **Step 1: Add route and request-order tests**
 
-Mock API operations and assert new article order: `POST /api/articles/drafts`, `PATCH /api/articles/{id}/draft`, synchronize topics serially, then `PUT /api/articles/{id}/publish` unless draft. Assert question URL creates an answer; answer URL updates an answer; article URL patches and republishes existing article; `/answer/{id}` performs the read-only answer lookup to discover its question. Assert columns are listed or created only in a real run, tags accept both normalized input forms, and dry-run invokes neither client nor uploader.
+Mock API operations and assert new article order: `POST /api/articles/drafts`, `PATCH /api/articles/{id}/draft`, synchronize topics serially, then `PUT /api/articles/{id}/publish` unless draft. Assert question URL creates an answer; answer URL updates an answer; article URL patches and republishes existing article; `/answer/{id}` performs the read-only answer lookup to discover its question. Assert columns are listed or created only for article routes during a real run, tags accept both normalized input forms, and dry-run invokes neither client nor uploader.
 
 ```python
 from zhihupost.document import parse_document
@@ -361,7 +361,7 @@ Define `RecordingClient` and `FakeUploader` in `tests/test_publisher.py`. `Recor
 
 - [ ] **Step 2: Add metadata behavior tests**
 
-Verify title fallback skips front matter and blank lines, successful article create/draft writes `/p/{id}` to the source file, successful new answer writes `/answer/{id}` when the API response supplies its ID, and existing answer/article URLs remain unchanged. If a draft-answer response has no answer ID, return success with the question draft URL and do not invent an answer URL. Verify failed API calls do not write metadata and body/BOM/line endings remain intact.
+Verify title fallback skips front matter and blank lines, successful article create/draft writes `/p/{id}` to the source file, successful new answer writes `/answer/{id}` when the API response supplies its ID, and existing answer/article URLs remain unchanged. If a draft-answer response has no answer ID, return success with the question draft URL and do not invent an answer URL. Verify failed API calls do not write metadata and body/BOM/line endings remain intact. Cover exact write payloads and partial-success failures for tags and publishing.
 
 - [ ] **Step 3: Run `python -m pytest tests/test_publisher.py -q` and confirm failure**
 
@@ -369,7 +369,7 @@ Expected: FAIL because `zhihupost.publisher` does not exist.
 
 - [ ] **Step 4: Implement content preparation and route handlers**
 
-Render after resolving body images and upload a nonempty `title-image` through the same `ImageUploader`; derive title from body only when metadata is empty. Read successful JSON responses with `.json()` and inspect `status_code`; create articles with `POST https://zhuanlan.zhihu.com/api/articles/drafts` and `{title: "h", delta_time: 0}`, then patch `/api/articles/{id}/draft` with content/title/titleImage before syncing topics and publishing with `PUT /api/articles/{id}/publish`. Resolve columns from `GET https://www.zhihu.com/api/v4/members/{url_token}/column-contributions`; create a missing named column with `POST https://www.zhihu.com/api/v4/columns/request` only during real publish. For articles, await tag removal/addition before publish. New answers use `POST https://www.zhihu.com/api/v4/questions/{question_id}/answers` or `/draft` with content and reward settings; existing answers use `PUT https://www.zhihu.com/api/v4/answers/{answer_id}` or the question draft endpoint. Resolve `/answer/{id}` with a read-only GET, redirects enabled, and final response URL. Do not retry any write. Surface a partial-success error if content was written but subsequent tag/publish/write-back work fails.
+Render after resolving body images and upload a nonempty `title-image` through the same `ImageUploader`; derive title from body only when metadata is empty. Read successful JSON responses with `.json()` and inspect `status_code`. Create articles with `POST https://zhuanlan.zhihu.com/api/articles/drafts` and `{title: "h", delta_time: 0}`, then patch `/api/articles/{id}/draft` with `{content, title, titleImage, isTitleImageFullScreen: false}` before syncing topics. Publish with `PUT /api/articles/{id}/publish` and `{column: <column object or null>, commentPermission: "anyone"}`. Resolve columns from `GET https://www.zhihu.com/api/v4/members/{url_token}/column-contributions?include=data%5B*%5D.column.intro%2Cfollowers%2Carticles_count&offset=0&limit=20`, reading `data[].column`; create a missing named column with `POST https://www.zhihu.com/api/v4/columns/request` and `{title, intro: "", intro_type: "rich"}` only during real article publish. For articles, await tag removal/addition before publish. Read current topics from the article draft's `topics`; delete unwanted topics with `DELETE /api/articles/{id}/topics/{topic_id}`. For missing tags, GET `/api/autocomplete/topics?token={encodeURI(tag)}&max_matches=2&use_similar=0&topic_filter=1`, require the first result's name to match case-insensitively, and POST the entire matching topic object to `/api/articles/{id}/topics`. New answers use `POST https://www.zhihu.com/api/v4/questions/{question_id}/answers` or `/draft` with `{content, reshipment_settings: "allowed", comment_permission: "all", reward_setting: {can_reward: false}}`; existing answers use `PUT https://www.zhihu.com/api/v4/answers/{answer_id}` or the question draft endpoint with content and reward settings. Resolve `/answer/{id}` with a read-only GET, redirects enabled, and final response URL; fail if it does not identify the question. Do not retry any write. Surface a partial-success error if content was written but subsequent tag/publish/write-back work fails.
 
 - [ ] **Step 5: Run `python -m pytest tests/test_publisher.py -q`**
 
