@@ -4,7 +4,7 @@ import httpx
 import pytest
 
 from zhihupost.document import parse_document
-from zhihupost.publisher import PartialPublishError, Publisher, PublishResult
+from zhihupost.publisher import PartialPublishError, PublishError, Publisher, PublishResult
 
 
 class RecordingClient:
@@ -114,25 +114,25 @@ def test_existing_article_patches_and_syncs_tags_before_publish_without_url_writ
     )
     parsed = parse_document(source.read_text(encoding="utf-8"), source)
     client = RecordingClient([
-        {"url_token": "author"},
-        {"data": [{"column": {"id": "c1", "title": "Column"}}]},
         {},
         {"topics": [{"id": "drop", "name": "Drop"}, {"id": "keep", "name": "KEEP"}]},
         {},
+        {"url_token": "author"},
+        {"data": [{"column": {"id": "c1", "title": "Column"}}]},
         {},
     ])
 
     result = Publisher(client, FakeUploader()).publish_document(parsed)
 
     assert calls_without_kwargs(client) == [
-        ("GET", "https://www.zhihu.com/api/v4/me"),
-        ("GET", "https://www.zhihu.com/api/v4/members/author/column-contributions?include=data%5B*%5D.column.intro%2Cfollowers%2Carticles_count&offset=0&limit=20"),
         ("PATCH", "https://zhuanlan.zhihu.com/api/articles/9/draft"),
         ("GET", "https://zhuanlan.zhihu.com/api/articles/9/draft"),
         ("DELETE", "https://zhuanlan.zhihu.com/api/articles/9/topics/drop"),
+        ("GET", "https://www.zhihu.com/api/v4/me"),
+        ("GET", "https://www.zhihu.com/api/v4/members/author/column-contributions?include=data%5B*%5D.column.intro%2Cfollowers%2Carticles_count&offset=0&limit=20"),
         ("PUT", "https://zhuanlan.zhihu.com/api/articles/9/publish"),
     ]
-    assert client.calls[2][2]["json"]["title"] == "Edited"
+    assert client.calls[0][2]["json"]["title"] == "Edited"
     assert "json" not in client.calls[4][2]
     assert client.calls[-1][2]["json"] == {
         "column": {"id": "c1", "title": "Column"},
@@ -144,14 +144,15 @@ def test_existing_article_patches_and_syncs_tags_before_publish_without_url_writ
 
 def test_missing_column_is_created_with_exact_payload(tmp_path):
     client = RecordingClient([
+        {"id": "12"}, {}, {"topics": []},
         {"url_token": "author"}, {"data": []}, {"id": "created", "title": "New"},
-        {"id": "12"}, {}, {"topics": []}, {},
+        {},
     ])
     result = Publisher(client, FakeUploader()).publish_document(
         document(tmp_path, metadata="title: Title\ncolumn: New\n")
     )
 
-    assert (client.calls[2][0], client.calls[2][1], client.calls[2][2]["json"]) == (
+    assert (client.calls[5][0], client.calls[5][1], client.calls[5][2]["json"]) == (
         "POST",
         "https://www.zhihu.com/api/v4/columns/request",
         {"title": "New", "intro": "", "intro_type": "rich"},
@@ -371,7 +372,7 @@ def test_failed_or_partial_article_flow_never_writes_url(tmp_path, payloads):
     original = "---\ntitle: Failure\n---\nBody\n"
     source.write_text(original, encoding="utf-8")
     parsed = parse_document(original, source)
-    with pytest.raises((RuntimeError, PartialPublishError)):
+    with pytest.raises((RuntimeError, PublishError, PartialPublishError)):
         Publisher(RecordingClient(payloads), FakeUploader()).publish_document(parsed)
     assert source.read_text(encoding="utf-8") == original
 

@@ -93,10 +93,6 @@ class Publisher:
                 raise
             raise PublishError("Unable to render or upload article images") from None
 
-        column = None
-        if not draft:
-            column = self._resolve_column(document.metadata.get("column"))
-
         if target.kind == "new_article":
             response = self._call(
                 "POST",
@@ -110,20 +106,21 @@ class Publisher:
                 raise PublishError("Article draft creation response omitted its ID")
             article_id = str(article_id)
 
+            self._call(
+                "PATCH",
+                f"https://zhuanlan.zhihu.com/api/articles/{article_id}/draft",
+                json={
+                    "content": content,
+                    "title": title,
+                    "titleImage": title_image,
+                    "isTitleImageFullScreen": False,
+                },
+                stage="article content update",
+            )
             try:
-                self._call(
-                    "PATCH",
-                    f"https://zhuanlan.zhihu.com/api/articles/{article_id}/draft",
-                    json={
-                        "content": content,
-                        "title": title,
-                        "titleImage": title_image,
-                        "isTitleImageFullScreen": False,
-                    },
-                    stage="article content update",
-                )
                 self._sync_topics(article_id, _tags(document.metadata.get("tags")))
                 if not draft:
+                    column = self._resolve_column(document.metadata.get("column"))
                     self._call(
                         "PUT",
                         f"https://zhuanlan.zhihu.com/api/articles/{article_id}/publish",
@@ -142,20 +139,21 @@ class Publisher:
 
         article_id = target.article_id
         assert article_id is not None
+        self._call(
+            "PATCH",
+            f"https://zhuanlan.zhihu.com/api/articles/{article_id}/draft",
+            json={
+                "content": content,
+                "title": title,
+                "titleImage": title_image,
+                "isTitleImageFullScreen": False,
+            },
+            stage="article content update",
+        )
         try:
-            self._call(
-                "PATCH",
-                f"https://zhuanlan.zhihu.com/api/articles/{article_id}/draft",
-                json={
-                    "content": content,
-                    "title": title,
-                    "titleImage": title_image,
-                    "isTitleImageFullScreen": False,
-                },
-                stage="article content update",
-            )
             self._sync_topics(article_id, _tags(document.metadata.get("tags")))
             if not draft:
+                column = self._resolve_column(document.metadata.get("column"))
                 self._call(
                     "PUT",
                     f"https://zhuanlan.zhihu.com/api/articles/{article_id}/publish",
