@@ -21,6 +21,73 @@ tags: tag1, tag 2, tag-3, 标签4
 
 下载release的.vsix，安装到vscode即可
 
+## Python CLI
+
+项目同时提供一个可安装的 Python 命令行工具，要求 Python 3.10 或更高版本：
+
+```bash
+python -m pip install -e .
+zhihupost --help
+```
+
+登录时通过标准输入传入完整的知乎 Cookie header。命令会先调用只读的当前用户接口验证，验证成功后才保存凭据：
+
+```bash
+Get-Content .\cookie.txt | zhihupost login --stdin   # PowerShell
+cat ./cookie.txt | zhihupost login --stdin           # macOS/Linux
+```
+
+也可以设置 `ZHIHU_COOKIE` 环境变量。它会覆盖 `login` 保存的 Cookie，适合 CI 或临时会话；程序不会把 Cookie 打印到输出中。
+
+```bash
+zhihupost whoami
+zhihupost logout
+```
+
+`render` 只在本地把 Markdown 转成 HTML，`publish --dry-run` 只准备发布内容。这两个命令都不会访问知乎或 OSS，也不需要 Cookie：
+
+```bash
+zhihupost render article.md > article.html
+zhihupost publish article.md --dry-run
+```
+
+通过验证后，可以发布新文章、更新已有目标，或只保存草稿：
+
+```bash
+zhihupost publish article.md
+zhihupost publish article.md --draft
+```
+
+`publish-dir` 会递归处理目录下的 `.md` 文件，按相对路径排序；文件之间默认等待 60 秒，可用 `--delay` 调整：
+
+```bash
+zhihupost publish-dir ./articles --delay 60
+zhihupost publish-dir ./articles --draft --delay 10
+```
+
+单独上传图片并打印知乎图片 URL：
+
+```bash
+zhihupost upload-image ./images/cover.png
+```
+
+Python CLI 使用与扩展相同的 YAML front matter。支持的字段为 `title`、`url`、`column`、`title-image` 和 `tags`；`tags` 可以写成逗号分隔的字符串，也可以写成 YAML 字符串列表：
+
+```yaml
+---
+title: 我的文章
+url: https://zhuanlan.zhihu.com/p/123
+column: Python
+title-image: ./images/cover.png
+tags: Python, Markdown
+# tags:
+#   - Python
+#   - Markdown
+---
+```
+
+正文支持标题、段落、引用、列表和任务列表、表格、代码块、链接和图片、脚注、数学公式、短代码 Emoji，以及 `zhihu-link-card:` 链接卡片。相对图片路径按 Markdown 文件所在目录解析；SVG 图片不支持。
+
 # 支持的功能
 
 
